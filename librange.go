@@ -37,8 +37,6 @@ static void print_array(char **a) {
 
 */
 import "C"
-
-import "fmt"
 import "unsafe"
 
 
@@ -51,7 +49,6 @@ func NewRangeLib(config_file string) *RangeLib {
 	c_config_file := C.CString(config_file)
 	range_obj := C.range_easy_create(c_config_file)
 	C.free(unsafe.Pointer(c_config_file))
-        //fmt.Printf("%v\n", range_obj)
 	rl := &RangeLib{range_obj, true}
 	return rl
 }
@@ -71,25 +68,18 @@ func (rl *RangeLib) ExpandRange(range_expr string) []string {
             strings = append(strings, C.GoString(*p))
             q = (**_Ctype_char)(unsafe.Pointer(unsafe.Sizeof(q) + uintptr(unsafe.Pointer(q))))
         }
-	//fmt.Printf("%v\n", strings)
 	return strings
 }
 
 func (rl *RangeLib) CompressRange(nodes []string) string {
-	fmt.Printf("%v\n", len(nodes))
 	node_count := len(nodes)
 	var q **_Ctype_char
         q = C.makeCharArray(C.int(node_count + 1))
-        fmt.Printf("%v\n", q)
 	for index, str := range nodes {
-          fmt.Printf("index: %v\n", index)
           C.setArrayString(q, C.CString(str), C.int(index))
         }
-	fmt.Printf("setting %v\n", C.int(node_count))
         C.setArrayString(q, (*_Ctype_char)(unsafe.Pointer(uintptr(0))), C.int(node_count))
-	fmt.Printf("rl.Lr: %v\n", rl.Lr)
-	fmt.Printf("q: %v\n", q)
-        C.print_array(q)
+        // debugging C.print_array(q)
 	compressed := C.range_easy_compress(rl.Lr, q)
 	C.freeArrayElements(C.int(node_count + 1), q)
 	return C.GoString(compressed)
